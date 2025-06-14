@@ -4,6 +4,7 @@ from PIL import Image
 import tempfile
 import os
 from pathlib import Path
+import io
 
 st.set_page_config(page_title="PDF & Image Merger", page_icon="📄", layout="centered", initial_sidebar_state="auto")
 
@@ -44,14 +45,13 @@ if uploaded_files:
     ordered_files = [next(f for f in uploaded_files if f.name == name) for name in order]
 
     output_name = st.text_input("Output file name (without extension)", value="merged")
-    output_dir = st.text_input("Output directory", value=str(Path.home()))
-
+    
     if st.button("Process"):
         if not order:
             st.error("Please arrange at least one file.")
         else:
             with st.spinner("Processing..."):
-                output_path = os.path.join(output_dir, output_name + ".pdf")
+                output_buffer = io.BytesIO()
                 if mode == "Merge PDFs":
                     merger = PdfMerger()
                     for file in ordered_files:
@@ -59,7 +59,7 @@ if uploaded_files:
                             tmp.write(file.read())
                             tmp.flush()
                             merger.append(tmp.name)
-                    merger.write(output_path)
+                    merger.write(output_buffer)
                     merger.close()
                 else:
                     images = []
@@ -67,10 +67,11 @@ if uploaded_files:
                         img = Image.open(file).convert("RGB")
                         images.append(img)
                     images[0].save(
-                        output_path,
+                        output_buffer,
+                        format="PDF",
                         save_all=True,
                         append_images=images[1:]
                     )
-            st.success(f"File saved to: {output_path}")
-            with open(output_path, "rb") as f:
-                st.download_button("Download merged PDF", f, file_name=output_name + ".pdf", mime="application/pdf")
+                output_buffer.seek(0)
+            st.success("Ready to download!")
+            st.download_button("Download merged PDF", output_buffer, file_name=output_name + ".pdf", mime="application/pdf")
