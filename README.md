@@ -62,8 +62,8 @@ Output file is saved to the path you choose and is also downloadable directly
 ## License
 This project is licensed under the MIT License.
 
-## Deployment
-This porject is deloyment on steamlit
+## Demo
+This porject is deloyment demo on steamlit
 ```https
 https://imgpdfconverter.streamlit.app/
 ```
